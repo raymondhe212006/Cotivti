@@ -1,0 +1,58 @@
+import 'dotenv/config';
+import Anthropic from '@anthropic-ai/sdk';
+import fs from 'fs';
+const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const prompts = JSON.parse(fs.readFileSync("prompts.json"));
+
+export async function createPersonas(medicalPlan, clientsRequests) {
+    const stage1 = prompts[0];
+    const system = stage1.system;
+    const user = stage1.user
+        .replace("{PROPOSAL}", medicalPlan)
+        .replace("{PERSONAS}", clientsRequests);
+
+    const result = await client.messages.create({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        system,
+        messages: [
+            {
+                role: 'user',
+                content: user,
+            },
+        ],
+    });
+    const stripped = result.content[0].text.replace(/^```json\s*/, "").replace(/```$/, "").trim();
+
+    const data = JSON.parse(stripped).roles;
+    return data;
+}
+
+export async function simulate_persona(persona, medicalPlan) {
+    const stage2 = prompts[1];
+    const system = stage2.system
+        .replace("{ROLE.title}", persona.title)
+        .replace("{ROLE.department}", persona.department)
+        .replace("{ROLE.lens}", persona.lens)
+        .replace("{ROLE.focus}", persona.focus);
+
+    const user = stage2.user
+        .replace("{PROPOSAL}", medicalPlan);
+
+    const result = await client.messages.create({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        system,
+        messages: [
+            {
+                role: 'user',
+                content: user,
+            },
+        ],
+    });
+
+    const stripped = result.content[0].text.replace(/^```json\s*/, "").replace(/```$/, "").trim();
+    const data = JSON.parse(stripped);
+    return data;
+}
+
