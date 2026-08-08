@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { createPersonas, simulate_persona } from './calls.js';
+import { createPersonas, simulate_persona, reassess, final_concensus } from './calls.js';
 
 const testInput = JSON.parse(fs.readFileSync('test_input.json'));
 
@@ -14,7 +14,35 @@ async function generate_report(plan, requests) {
         personas.map(persona => simulate_persona(persona, plan))
     );
 
-    console.log(personas_result);
+    const slimmed_responses = personas_result.map(r => ({
+        title: r.title,
+        feeling: r.feeling,
+        biggest_concern: r.biggest_concern,
+    }));
+
+    const personas_reassessed = await Promise.all(
+        personas.map(persona => {
+            const own_reaction = personas_result.find(r => r.title === persona.title);
+            const other_reactions = slimmed_responses.filter(r => r.title !== persona.title);
+            return reassess(persona, plan, own_reaction, other_reactions);
+        })
+    );
+
+
+
+    for (const persona_response of personas_result) {
+        const updated_opinions = personas_reassessed.find(r => r.title === persona_response.title);
+        persona_response.position_changed = updated_opinions.position_changed;
+        persona_response.updated_rating = updated_opinions.updated_rating;
+        persona_response.updated_feeling = updated_opinions.updated_feeling;
+        persona_response.reassessment = updated_opinions.reassessment;
+    }
+
+    const final_verdict = await final_concensus(plan, personas_result);
+
+    fs.writeFileSync("reactions.json", JSON.stringify(personas_result, null, 2));
+    fs.writeFileSync("final_verdict.json", JSON.stringify(final_verdict, null, 2));
+
 }
 
 generate_report(test_prompt, clientsRequests);
