@@ -13,7 +13,7 @@ export async function createPersonas(medicalPlan, clientsRequests) {
 
     const result = await client.messages.create({
         model: 'claude-sonnet-4-6',
-        max_tokens: 1000,
+        max_tokens: 4096,
         system,
         messages: [
             {
@@ -22,6 +22,7 @@ export async function createPersonas(medicalPlan, clientsRequests) {
             },
         ],
     });
+    // model sometimes wraps JSON in ```json ... ``` fences
     const stripped = result.content[0].text.replace(/^```json\s*/, "").replace(/```$/, "").trim();
 
     const data = JSON.parse(stripped).roles;
@@ -41,7 +42,7 @@ export async function simulate_persona(persona, medicalPlan) {
 
     const result = await client.messages.create({
         model: 'claude-sonnet-4-6',
-        max_tokens: 1000,
+        max_tokens: 1024,
         system,
         messages: [
             {
@@ -51,8 +52,10 @@ export async function simulate_persona(persona, medicalPlan) {
         ],
     });
 
+    // model sometimes wraps JSON in ```json ... ``` fences
     const stripped = result.content[0].text.replace(/^```json\s*/, "").replace(/```$/, "").trim();
     const data = JSON.parse(stripped);
+    // attach role context — the model response has none, but later stages need it for matching
     data.title = persona.title;
     data.department = persona.department;
     data.lens = persona.lens;
@@ -68,6 +71,7 @@ export async function reassess(persona, medicalPlan, own_reaction, other_reactio
         .replace("{ROLE.department}", persona.department);
 
 
+    // pass only the fields the prompt uses — keeps peer context small
     const othersSlim = other_reactions.map(r => ({
         title: r.title,
         feeling: r.feeling,
@@ -81,7 +85,7 @@ export async function reassess(persona, medicalPlan, own_reaction, other_reactio
 
     const result = await client.messages.create({
         model: 'claude-sonnet-4-6',
-        max_tokens: 1000,
+        max_tokens: 1024,
         system,
         messages: [
             {
@@ -106,7 +110,7 @@ export async function final_concensus(medicalPlan, personas_discussion_result) {
 
     const result = await client.messages.create({
         model: 'claude-sonnet-4-6',
-        max_tokens: 1000,
+        max_tokens: 2048,
         system,
         messages: [
             {
