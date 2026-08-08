@@ -2,6 +2,17 @@
 
 Agentic multi-stakeholder prior authorization analysis — Cotiviti Internship Assessment POC
 
+**Topic:** Clinical Decision Making and Pattern Recognition in Health Care — agentic generative AI for prior authorization review across the treatment, payment, and operations (TPO) dimension.
+
+## Deliverables
+
+| File | Description |
+|------|-------------|
+| `He_Raymond_Cotiviti_Report.docx` | Two-page written report + bibliography |
+| `He_Raymond_Presentation.pptx` | PowerPoint slide deck |
+| `He_Raymond_Video_Recording.mp4` | ≤5-minute recorded presentation with POC screenshare |
+| `He_Raymond_Resume.docx.pdf` | Current resume |
+
 ## What it does
 
 MedQuorum simulates a real-world prior authorization review by spinning up multiple AI personas (clinician, payer medical director, pharmacist, case manager, etc.) and having each independently evaluate a submitted proposal. The personas then see one another's positions, reassess their own stances, and a final consensus verdict is rendered.
@@ -44,15 +55,10 @@ npm run web
 ```
 .
 ├── index.js          # Core pipeline: persona creation → reactions → reassessment → verdict
-├── calls.js          # Claude API calls (createPersonas, simulate_persona, reassess, final_concensus)
+├── calls.js          # Claude API calls (createPersonas, simulate_persona, reassess, final_consensus)
 ├── server.js         # Express server + /api/run and /api/sample endpoints
 ├── public/
 │   └── index.html    # Single-page frontend
 ├── prompts.json      # System prompts for each pipeline stage
-├── sample_proposal.txt
 └── test_input.json   # Sample proposal loaded via "Load sample proposal"
 ```
-
-## Relevant topic
-
-**Clinical Decision Making and Pattern Recognition in Health Care** — specifically demonstrating agentic generative AI for prior authorization review across the treatment, payment, and operations (TPO) dimension.
