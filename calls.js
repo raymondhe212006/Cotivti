@@ -26,6 +26,9 @@ export async function createPersonas(medicalPlan, clientsRequests) {
     const stripped = result.content[0].text.replace(/^```json\s*/, "").replace(/```$/, "").trim();
 
     const data = JSON.parse(stripped).roles;
+    for (const role of data) {
+        role.requested = role.requested === true || role.requested === 'true';
+    }
     return data;
 }
 
@@ -55,6 +58,7 @@ export async function simulate_persona(persona, medicalPlan) {
     // model sometimes wraps JSON in ```json ... ``` fences
     const stripped = result.content[0].text.replace(/^```json\s*/, "").replace(/```$/, "").trim();
     const data = JSON.parse(stripped);
+    data.rating = parseInt(data.rating);
     // attach role context — the model response has none, but later stages need it for matching
     data.title = persona.title;
     data.department = persona.department;
@@ -97,6 +101,8 @@ export async function reassess(persona, medicalPlan, own_reaction, other_reactio
 
     const stripped = result.content[0].text.replace(/^```json\s*/, "").replace(/```$/, "").trim();
     const data = JSON.parse(stripped);
+    data.updated_rating = parseInt(data.updated_rating);
+    data.position_changed = data.position_changed === true || data.position_changed === 'true';
     return data;
 }
 
